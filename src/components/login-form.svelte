@@ -1,5 +1,6 @@
 <script lang="ts">
     import { login, authStore } from '$lib/auth-store'
+    import Shape1 from '$lib/components/shapes/shape1.svelte';
     import { Button } from "$lib/components/ui/button/index";
     import { Input } from "$lib/components/ui/input/index";
   
@@ -14,10 +15,11 @@
     }
   </script>
   
-  <div class="min-h-screen flex items-center justify-center">
+  <div class="min-h-screen flex items-center justify-center relative">
+    <Shape1 className="absolute -top-12 -right-12 spin-slow" color="#D0BCFF" height={200} width={200} />
     <div class="w-full max-w-md space-y-6">
         <div class="flex flex-col gap-6 max-w-md">
-            <h1 class="text-4xl font-bold uppercase">Secure decentralized <br/> file sharing</h1>
+            <h1 class="text-4xl font-bold uppercase">Secure <span class="text-primary">decentralized</span> <br/> file sharing</h1>
             <p class="text-lg text-muted-foreground">
               Share files with friends and family securely and privately.
             </p>

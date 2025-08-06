@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store'
+import { writable, get } from 'svelte/store'
 import { create } from '@storacha/client'
 import { load } from '@tauri-apps/plugin-store'
 
@@ -100,4 +100,110 @@ export const resetEmailSent = () => {
     emailSent: false,
     emailSentTo: null
   }))
+}
+
+// File operations using the authenticated client
+export const uploadFile = async (file: File) => {
+  const state = get(authStore)
+  const { client } = state
+  if (!client) {
+    throw new Error('Not authenticated')
+  }
+  
+  try {
+    const result = await client.upload(file)
+    return result
+  } catch (error) {
+    console.error('Upload error:', error)
+    throw error
+  }
+}
+
+export const downloadFile = async (fileId: string) => {
+  const state = get(authStore)
+  const { client } = state
+  if (!client) {
+    throw new Error('Not authenticated')
+  }
+  
+  try {
+    const result = await client.download(fileId)
+    return result
+  } catch (error) {
+    console.error('Download error:', error)
+    throw error
+  }
+}
+
+export const listFiles = async () => {
+  const state = get(authStore)
+  const { client } = state
+  if (!client) {
+    throw new Error('Not authenticated')
+  }
+  
+  try {
+    const files = await client.list()
+    return files
+  } catch (error) {
+    console.error('List files error:', error)
+    throw error
+  }
+}
+
+export const shareFile = async (fileId: string, email: string, permissions: string[] = ['read']) => {
+  const state = get(authStore)
+  const { client } = state
+  if (!client) {
+    throw new Error('Not authenticated')
+  }
+  
+  try {
+    const result = await client.share(fileId, {
+      email,
+      permissions
+    })
+    return result
+  } catch (error) {
+    console.error('Share file error:', error)
+    throw error
+  }
 } 
+
+export const getSpaces = async () => {
+  const state = get(authStore)
+  const { client } = state
+  if (!client) {
+    throw new Error('Not authenticated')
+  }
+  return client.spaces()
+}
+
+export const setSpace = async (spaceId: string) => {
+  const state = get(authStore)
+  const { client } = state
+  if (!client) {
+    throw new Error('Not authenticated')
+  }
+  return client.setCurrentSpace(spaceId)
+}
+
+export const getCurrentSpace = async () => {
+  const state = get(authStore)
+  const { client } = state
+  if (!client) {
+    throw new Error('Not authenticated')
+  }
+  return client.currentSpace()
+}
+
+export const listContents = async () => {
+  const state = get(authStore)
+  const { client } = state
+  if (!client) {
+    throw new Error('Not authenticated')
+  }
+
+  let files = await client.capability.blob.list()
+  return files
+}
