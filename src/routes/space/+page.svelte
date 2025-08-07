@@ -2,6 +2,7 @@
     import { getCurrentSpace, listContents } from "$lib/auth-store";
     import { Button } from "$lib/components/ui/button/index";
     import { copyToClipboard } from "$lib/utils";
+    import * as Dialog from "$lib/components/ui/dialog/index.js";
 
     import Icon from "@iconify/svelte";
 
@@ -46,10 +47,27 @@
         </h1>
         <span> </span>
     </div>
+    <Dialog.Root>
+        <Dialog.Trigger>
+            <Button>
+                <Icon icon="mdi:plus" />
+            </Button>
+        </Dialog.Trigger>
+        <Dialog.Content>
+          <Dialog.Header>
+            <Dialog.Title>Upload new file</Dialog.Title>
+           
+          </Dialog.Header>
 
-    <Button>
-        <Icon icon="mdi:plus" />
-    </Button>
+
+          <div class="h-44 w-full border-2 border-primary border-dashed rounded-md flex flex-col items-center justify-center">
+            <Icon icon="mdi:upload" width="40" height="40" />
+            <span class="text-sm text-muted-foreground">Drag and drop a file here or click to upload</span>
+          </div>
+
+        </Dialog.Content>
+      </Dialog.Root>
+
 </div>
 
 {#if !spaceContents}

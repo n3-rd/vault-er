@@ -1,12 +1,18 @@
 <script lang="ts">
     import { Button } from "$lib/components/ui/button/index";
-    import { getSpaces } from '$lib/auth-store'
+    import { Input } from "$lib/components/ui/input/index";
+    import * as Dialog from "$lib/components/ui/dialog/index.js";
+    import { createSpace, getSpaces } from '$lib/auth-store'
     import Icon from "@iconify/svelte";
     import { goToSpace } from "$lib/utils";
+    import { toast } from "svelte-sonner";
 
     let spaces: any[] = $state([])
     let loading = $state(true)
     let error = $state<string | null>(null)
+    let spaceName = $state('')
+    let creatingSpace = $state(false)
+    let dialogOpen = $state(false);
 
     $effect(() => {
         getSpaces()
@@ -24,7 +30,48 @@
 <div class="space-y-6">
     <div class="flex w-full items-center justify-between">
         <h2 class="text-2xl font-bold">Spaces</h2>
+        <Dialog.Root bind:open={dialogOpen}>
+            <Dialog.Trigger>
+            
         <Button>New Space</Button>
+
+            </Dialog.Trigger>
+            <Dialog.Content>
+              <Dialog.Header>
+                <Dialog.Title>Create a new space</Dialog.Title>
+     
+              </Dialog.Header>
+              <div class="flex flex-col gap-4">
+                <Input
+                   bind:value={spaceName}
+                   type="text"
+                   placeholder="Enter a name for your space"
+                 />
+                 <span class="text-sm text-muted-foreground">Leave empty to autogenerate a name</span>
+                 <Button class="w-full"
+                 disabled={creatingSpace}
+                 onclick={async () =>{
+                    creatingSpace = true
+                    await createSpace(spaceName).then(async (newSpace) => {
+                        console.log('Space created')
+                        // Refresh the spaces list to get the updated data
+                        const updatedSpaces = await getSpaces()
+                        spaces = updatedSpaces
+                        spaceName = ''
+                        toast.success('Space created')
+                        creatingSpace = false
+                        dialogOpen = false
+                    })
+                 }}>
+                    {#if creatingSpace}
+                    <Icon icon="fluent:spinner-ios-16-filled" width="16" height="16" class="animate-spin" />
+                    {:else}
+                        Create
+                    {/if}
+                 </Button>
+                     </div>
+            </Dialog.Content>
+          </Dialog.Root>
     </div>
 
     {#if loading}

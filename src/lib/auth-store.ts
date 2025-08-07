@@ -207,3 +207,12 @@ export const listContents = async () => {
   let files = await client.capability.blob.list()
   return files
 }
+
+export const createSpace = async (name?: string) => {
+  const state = get(authStore)
+  const { client } = state
+  if (!client) {
+    throw new Error('Not authenticated')
+  }
+  return client.createSpace(name || '')
+}
