@@ -1,7 +1,7 @@
 {
   "name": "vault-er",
   "version": "0.1.0",
-  "description": "",
+  "description": "Vault-er is a minimal desktop vault built with SvelteKit + Tauri. Auth, spaces, and local-first storage with a clean UI.",
   "type": "module",
   "scripts": {
     "dev": "vite dev",
