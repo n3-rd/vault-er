@@ -1,7 +1,7 @@
 [package]
 name = "vault-er"
 version = "0.1.0"
-description = "A Tauri App"
+description = "Vault-er is a minimal desktop vault built with SvelteKit + Tauri. Auth, spaces, and local-first storage with a clean UI."
 authors = ["you"]
 edition = "2021"
 

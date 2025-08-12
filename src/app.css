@@ -3,9 +3,73 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+@font-face {
+  font-family: 'Sora';
+  src: url('/fonts/sora-latin-100-normal.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sora';
+  src: url('/fonts/sora-latin-200-normal.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sora';
+  src: url('/fonts/sora-latin-300-normal.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sora';
+  src: url('/fonts/sora-latin-400-normal.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sora';
+  src: url('/fonts/sora-latin-500-normal.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sora';
+  src: url('/fonts/sora-latin-600-normal.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sora';
+  src: url('/fonts/sora-latin-700-normal.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sora';
+  src: url('/fonts/sora-latin-800-normal.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 
 :root {
-  --radius: 0.625rem;
+  --radius: 1.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);
   --card: oklch(1 0 0);
@@ -113,9 +177,22 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring/50 select-none;
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Sora', sans-serif;
+  }
+}
+
+.spin-slow {
+  animation: spin-slow 6000ms linear infinite;
+}
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { authStore, resetEmailSent } from '$lib/auth-store'
+    import Spaces from '$lib/components/dashboard/spaces.svelte';
     import { Button } from "$lib/components/ui/button/index";
     import { load } from '@tauri-apps/plugin-store'
   
@@ -14,7 +15,7 @@
   </script>
   
   <div class="min-h-screen">
-    <div class="container mx-auto px-4 py-8">
+    <div class="">
       <!-- Header -->
       <div class="flex justify-between items-center mb-8">
         <div>
@@ -31,7 +32,8 @@
       </div>
   
       <!-- Main Content -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="w-full">
+        <Spaces />
       </div>
     </div>
   </div>

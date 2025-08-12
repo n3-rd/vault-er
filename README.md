@@ -1,7 +1,30 @@
-# Tauri + SvelteKit + TypeScript
+# Vault-er
 
-This template should help get you started developing with Tauri, SvelteKit and TypeScript in Vite.
+A minimal Storacha desktop client built with SvelteKit + Tauri. Auth, spaces, and local-first storage with a clean UI.
 
-## Recommended IDE Setup
+## Stack
+- SvelteKit (Svelte 5)
+- Tauri 2
+- TypeScript
+- Tailwind CSS 4
 
-[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer).
+## Scripts
+- `npm run dev`: start app in dev (Vite + Tauri)
+- `npm run build`: build frontend (Vite)
+- `npm run preview`: preview built frontend
+- `npm run tauri`: run Tauri CLI
+- `npm run check`: typecheck with svelte-check
+
+## Development
+```bash
+npm install
+npm run tauri dev
+```
+
+## Build (desktop)
+```bash
+npm run tauri build
+```
+
+## License
+MIT
