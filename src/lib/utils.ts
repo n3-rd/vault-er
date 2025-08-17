@@ -27,3 +27,24 @@ export const copyToClipboard = async (text: string) => {
 		toast.success('Copied to clipboard')
 	})
 }
+
+export const formatBytes = (bytes: number) => {
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  if (bytes === 0) return '0 Byte';
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
+}
+
+export const doNotAskExtOpen = () => {
+	const status = window.localStorage.getItem('doNotAskExtOpen');
+	return status === 'true';
+}
+
+export const setDoNotAskExtOpen = (status: boolean) => {
+	window.localStorage.setItem('doNotAskExtOpen', status.toString());
+}
+
+// Add a small helper to open external URLs safely
+export const openExternalUrl = (url: string) => {
+	window.open(url, '_blank', 'noopener,noreferrer');
+}

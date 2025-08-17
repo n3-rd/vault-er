@@ -1,6 +1,7 @@
 import { writable, get } from 'svelte/store'
 import { create } from '@storacha/client'
 import { load } from '@tauri-apps/plugin-store'
+import { generate } from 'yet-another-name-generator'
 
 export type AuthState = {
   client: any | null
@@ -109,9 +110,24 @@ export const uploadFile = async (file: File) => {
   if (!client) {
     throw new Error('Not authenticated')
   }
-  
+
+  // Ensure a current space is set and registered with a provider
+  const space = await client.currentSpace()
+  if (!space) {
+    throw new Error('No space selected. Choose a space before uploading.')
+  }
   try {
-    const result = await client.upload(file)
+    const info = await client.capability.space.info(space.did())
+    if (!info || !info.providers || info.providers.length === 0) {
+      throw new Error('Current space is not registered with a provider.')
+    }
+  } catch (e) {
+    throw new Error('Current space is not registered (space/info failed). Please register the space and try again.')
+  }
+
+  try {
+    // Use storacha/w3up client API
+    const result = await client.uploadFile(file)
     return result
   } catch (error) {
     console.error('Upload error:', error)
@@ -188,7 +204,26 @@ export const setSpace = async (spaceId: string) => {
   return client.setCurrentSpace(spaceId)
 }
 
+export const waitForAuthReady = (timeoutMs = 10000) =>
+  new Promise<void>((resolve, reject) => {
+    const state = get(authStore)
+    if (!state.loading) return resolve()
+    let unsub: (() => void) | null = null
+    const timeout = setTimeout(() => {
+      if (unsub) unsub()
+      reject(new Error('Auth init timeout'))
+    }, timeoutMs)
+    unsub = authStore.subscribe((s) => {
+      if (!s.loading) {
+        clearTimeout(timeout)
+        if (unsub) unsub()
+        resolve()
+      }
+    })
+  })
+
 export const getCurrentSpace = async () => {
+  await waitForAuthReady()
   const state = get(authStore)
   const { client } = state
   if (!client) {
@@ -198,21 +233,50 @@ export const getCurrentSpace = async () => {
 }
 
 export const listContents = async () => {
+  await waitForAuthReady()
   const state = get(authStore)
   const { client } = state
   if (!client) {
     throw new Error('Not authenticated')
   }
 
-  let files = await client.capability.blob.list()
-  return files
+  // Prefer uploads listing over raw blob listing so we show root CIDs
+  const uploads = await client.capability.upload.list()
+  // Map to the expected shape used by the UI
+  const results = (uploads?.results ?? []).map((u: any) => {
+    const root = u?.root?.toString?.() ?? u?.root ?? u?.cid ?? ''
+    const insertedAt = u?.insertedAt ?? u?.inserted_at ?? Date.now()
+    // Size may not be present on upload list; fall back to 0
+    const size = u?.size ?? u?.bytes ?? 0
+    return {
+      cause: root,
+      insertedAt,
+      blob: { size },
+      url: root ? `https://${root}.ipfs.w3s.link` : undefined,
+    }
+  })
+  return { size: uploads?.size ?? results.length, results }
 }
 
 export const createSpace = async (name?: string) => {
   const state = get(authStore)
+  const store = await load('auth.json')
+  const email = await store.get('email')
+  if (!email || typeof email !== 'string') {
+    throw new Error('No email found to register space. Please login again.')
+  }
   const { client } = state
   if (!client) {
     throw new Error('Not authenticated')
   }
-  return client.createSpace(name || '')
+  
+  // Get the account from the login process
+  const account = await client.login(email as `${string}@${string}`)
+  await account.plan.wait() // Wait for plan setup
+
+  return client.createSpace(name || generate(), { account }).then(async (space: any) => {
+    await setSpace(space.did())
+    return space
+  })
 }
+
