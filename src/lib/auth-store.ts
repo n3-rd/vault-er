@@ -2,6 +2,8 @@ import { writable, get } from 'svelte/store'
 import { create } from '@storacha/client'
 import { load } from '@tauri-apps/plugin-store'
 import { generate } from 'yet-another-name-generator'
+import { CID } from 'multiformats/cid'
+import { indexUpload } from './indexer'
 
 export type AuthState = {
   client: any | null
@@ -104,7 +106,7 @@ export const resetEmailSent = () => {
 }
 
 // File operations using the authenticated client
-export const uploadFile = async (file: File) => {
+export const uploadFile = async (file: File, description?: string, tags?: string[]) => {
   const state = get(authStore)
   const { client } = state
   if (!client) {
@@ -126,9 +128,10 @@ export const uploadFile = async (file: File) => {
   }
 
   try {
-    // Use storacha/w3up client API
-    const result = await client.uploadFile(file)
-    return result
+    const cid = await client.uploadFile(file)
+    console.log("indexing upload", cid.toString(), file.name, space.did(), description, tags)
+    indexUpload(cid.toString(), file.name, space.did(), description, tags)
+    return cid.toString();
   } catch (error) {
     console.error('Upload error:', error)
     throw error

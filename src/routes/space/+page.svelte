@@ -33,6 +33,10 @@
     let uploadOpen = $state(false);
     let uploading = $state(false);
     let fileInput: HTMLInputElement | null = $state(null);
+    let selectedFile: File | null = $state(null);
+    let description = $state('');
+    let tags = $state<string[]>([]);
+    let newTag = $state('');
 
     function deriveExternalUrl(file: { cause: string; url?: string }) {
         if (file.url && /^https?:\/\//.test(file.url)) return file.url;
@@ -70,41 +74,76 @@
         fileInput?.click();
     }
 
-    async function onFileChange(e: Event) {
+    function onFileChange(e: Event) {
         const target = e.currentTarget as HTMLInputElement;
         const file = target.files && target.files[0];
-        if (file) await startUpload(file);
+        if (file) {
+            selectedFile = file;
+        }
         // reset input so the same file can be selected again later
         if (target) target.value = '';
+    }
+
+    function addTag() {
+        if (newTag.trim() && !tags.includes(newTag.trim())) {
+            tags = [...tags, newTag.trim()];
+            newTag = '';
+        }
+    }
+
+    function removeTag(tagToRemove: string) {
+        tags = tags.filter(tag => tag !== tagToRemove);
+    }
+
+    function handleKeyPress(e: KeyboardEvent) {
+        if (e.key === 'Enter' || e.key === ' ' || e.key === ',') {
+            e.preventDefault();
+            addTag();
+        }
+    }
+
+    function resetUploadForm() {
+        selectedFile = null;
+        description = '';
+        tags = [];
+        newTag = '';
     }
 
     async function handleDrop(event: DragEvent) {
         event.preventDefault();
         const file = event.dataTransfer?.files?.[0];
-        if (file) await startUpload(file);
+        if (file) {
+            selectedFile = file;
+        }
     }
 
     function handleDragOver(event: DragEvent) {
         event.preventDefault();
     }
 
-    async function startUpload(file: File) {
+    async function startUpload() {
+        if (!selectedFile) return;
+        
         try {
             uploading = true;
-            const res = await uploadFile(file);
+            const res = await uploadFile(selectedFile, description, tags);
             toast.success('Upload complete');
+            console.log("res", res);
             await refreshContents();
             uploadOpen = false;
+            resetUploadForm();
         } catch (e) {
             console.error(e);
             if ((e as Error)?.message?.includes('not registered')) {
                 toast.error('Space not registered. Registering now…');
                 try {
                     toast.success('Space registered. Retrying upload…');
-                    const res2 = await uploadFile(file);
+                    const res2 = await uploadFile(selectedFile!, description, tags);
                     toast.success('Upload complete');
+                    console.log("res2", res2);
                     await refreshContents();
                     uploadOpen = false;
+                    resetUploadForm();
                     return;
                 } catch (e2) {
                     console.error(e2);
@@ -172,23 +211,82 @@
                 <Dialog.Title>Upload new file</Dialog.Title>
             </Dialog.Header>
 
-            <div
-                class="h-44 w-full border-2 border-primary border-dashed rounded-md flex flex-col items-center justify-center gap-2 cursor-pointer select-none"
-                on:click={onBrowseClick}
-                on:dragover={handleDragOver}
-                on:drop={handleDrop}
-                class:opacity-50={uploading}
-            >
-                <Icon icon="mdi:upload" width="40" height="40" />
-                <span class="text-sm text-muted-foreground">
-                    {uploading ? 'Uploading…' : 'Drag and drop a file here or click to upload'}
-                </span>
-                <input
-                    bind:this={fileInput}
-                    type="file"
-                    class="hidden"
-                    on:change={onFileChange}
-                />
+            <div class="space-y-4">
+                <button
+                    class="h-44 w-full border-2 border-primary border-dashed rounded-md flex flex-col items-center justify-center gap-2 cursor-pointer select-none"
+                    onclick={onBrowseClick}
+                    ondragover={handleDragOver}
+                    ondrop={handleDrop}
+                    class:opacity-50={uploading}
+                >
+                    <Icon icon="mdi:upload" width="40" height="40" />
+                    <span class="text-sm text-muted-foreground">
+                        {uploading ? 'Uploading…' : 'Drag and drop a file here or click to upload'}
+                    </span>
+                    <input
+                        bind:this={fileInput}
+                        type="file"
+                        class="hidden"
+                        onchange={onFileChange}
+                    />
+                </button>
+
+                {#if selectedFile}
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-sm font-medium">Selected file: {selectedFile.name}</label>
+                        </div>
+
+                        <div>
+                            <label for="description" class="text-sm font-medium">Description</label>
+                            <textarea
+                                id="description"
+                                bind:value={description}
+                                placeholder="Enter file description..."
+                                class="w-full mt-1 p-2 border rounded-md resize-none"
+                                rows="3"
+                            />
+                        </div>
+
+                        <div>
+                            <label class="text-sm font-medium">Tags</label>
+                            <div class="flex gap-2 mt-1">
+                                <input
+                                    bind:value={newTag}
+                                    onkeypress={handleKeyPress}
+                                    placeholder="Add a tag..."
+                                    class="flex-1 p-2 border rounded-md"
+                                />
+                                <Button onclick={addTag} disabled={!newTag.trim()}>Add</Button>
+                            </div>
+                            {#if tags.length > 0}
+                                <div class="flex flex-wrap gap-2 mt-2">
+                                    {#each tags as tag}
+                                        <span class="inline-flex items-center gap-1 px-2 py-1 bg-secondary text-secondary-foreground rounded-md text-sm">
+                                            {tag}
+                                            <button
+                                                onclick={() => removeTag(tag)}
+                                                class="hover:text-destructive"
+                                            >
+                                                <Icon icon="mdi:close" width="14" height="14" />
+                                            </button>
+                                        </span>
+                                    {/each}
+                                </div>
+                            {/if}
+                        </div>
+
+                        <Dialog.Footer>
+                            <Button 
+                                onclick={startUpload} 
+                                disabled={uploading}
+                                class="w-full"
+                            >
+                                {uploading ? 'Uploading...' : 'Upload File'}
+                            </Button>
+                        </Dialog.Footer>
+                    </div>
+                {/if}
             </div>
         </Dialog.Content>
     </Dialog.Root>

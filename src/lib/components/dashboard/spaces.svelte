@@ -34,6 +34,7 @@
             <Dialog.Trigger>
             
         <Button>New Space</Button>
+        <Button>Universal search</Button>
 
             </Dialog.Trigger>
             <Dialog.Content>
@@ -87,7 +88,7 @@
             <p class="text-muted-foreground">No spaces found</p>
         </div>
     {:else}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {#each spaces as space (space.did())}
                 <button
                 onclick={() => goToSpace(space.did())}
