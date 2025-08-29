@@ -9,6 +9,7 @@
     import { openUrl } from '@tauri-apps/plugin-opener';
     import Icon from "@iconify/svelte";
     import BackButton from "$lib/components/back-button.svelte";
+    import { Skeleton } from "$lib/components/ui/skeleton/index.js";
     import { toast } from 'svelte-sonner';
 
     let currentSpace: Space | null = $state(null);
@@ -292,22 +293,7 @@
     </Dialog.Root>
 </div>
 
-{#if !spaceContents}
-    <div class="h-96 w-full flex justify-center items-center">
-        <Icon
-            icon="fluent-color:arrow-clockwise-dashes-16"
-            width="90"
-            height="90"
-            class="animate-spin"
-        />
-    </div>
-{:else if spaceContents && spaceContents.size === 0}
-    <div class="h-96 w-full flex justify-center items-center">
-        <span class="text-2xl text-muted-foreground"
-            >No files in this space
-        </span>
-    </div>
-{:else}
+
     <Table.Root class="mt-4">
         <Table.Header>
             <Table.Row>
@@ -315,31 +301,50 @@
                 <Table.Head class="text-right">Timestamp</Table.Head>
             </Table.Row>
         </Table.Header>
-        <Table.Body>
-            {#each spaceContents.results as file}
-                <Table.Row class="cursor-pointer hover:bg-secondary" onclick={() => handleFileClick(file)}>
-                    <Table.Cell class="font-medium">{file.cause}</Table.Cell>
-
-                    <Table.Cell class="text-right">
-                        <Tooltip.Provider>
-                            <Tooltip.Root>
-                                <Tooltip.Trigger>
-                                    {new Date(
-                                        file.insertedAt,
-                                    ).toLocaleDateString()}
-                                </Tooltip.Trigger>
-                                <Tooltip.Content>
-                                    <p>Added at {new Date(file.insertedAt).toLocaleString()}</p>
-                                </Tooltip.Content>
-                            </Tooltip.Root>
-                        </Tooltip.Provider>
-                    </Table.Cell>
-                
-                </Table.Row>
-            {/each}
+                <Table.Body>
+            {#if spaceContents}
+                {#if spaceContents.results && spaceContents.results.length > 0}
+                    {#each spaceContents.results as file}
+                        <Table.Row class="cursor-pointer hover:bg-secondary" onclick={() => handleFileClick(file)}>
+                            <Table.Cell class="font-medium">
+                                {file.cause}
+                            </Table.Cell>
+                            <Table.Cell class="text-right">
+                                <Tooltip.Provider>
+                                    <Tooltip.Root>
+                                        <Tooltip.Trigger>
+                                            {new Date(file.insertedAt).toLocaleDateString()}
+                                        </Tooltip.Trigger>
+                                        <Tooltip.Content>
+                                            <p>Added at {new Date(file.insertedAt).toLocaleString()}</p>
+                                        </Tooltip.Content>
+                                    </Tooltip.Root>
+                                </Tooltip.Provider>
+                            </Table.Cell>
+                        </Table.Row>
+                    {/each}
+                {:else}
+                    <Table.Row>
+                        <Table.Cell colspan="2" class="text-center py-8">
+                            <span class="text-muted-foreground">No files in this space</span>
+                        </Table.Cell>
+                    </Table.Row>
+                {/if}
+            {:else}
+                <!-- Loading skeleton -->
+                {#each Array(5) as _, i}
+                    <Table.Row>
+                        <Table.Cell>
+                            <Skeleton class="h-4 w-48 bg-gray-500/50" />
+                        </Table.Cell>
+                        <Table.Cell class="text-right">
+                            <Skeleton class="h-4 w-24 bg-gray-500/50" />
+                        </Table.Cell>
+                    </Table.Row>
+                {/each}
+            {/if}
         </Table.Body>
     </Table.Root>
-{/if}
 
 <!-- External navigation confirm dialog -->
 <Dialog.Root bind:open={confirmOpen}>

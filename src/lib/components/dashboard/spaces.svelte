@@ -34,7 +34,7 @@
             <Dialog.Trigger>
             
         <Button>New Space</Button>
-        <Button>Universal search</Button>
+        <Button variant="ghost"><Icon icon="fluent:search-24-regular" width="16" height="16" /></Button>
 
             </Dialog.Trigger>
             <Dialog.Content>
