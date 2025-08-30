@@ -219,6 +219,7 @@
                     ondragover={handleDragOver}
                     ondrop={handleDrop}
                     class:opacity-50={uploading}
+                    disabled={uploading}
                 >
                     <Icon icon="mdi:upload" width="40" height="40" />
                     <span class="text-sm text-muted-foreground">
@@ -228,6 +229,7 @@
                         bind:this={fileInput}
                         type="file"
                         class="hidden"
+                        disabled={uploading}
                         onchange={onFileChange}
                     />
                 </button>
@@ -235,7 +237,7 @@
                 {#if selectedFile}
                     <div class="space-y-4">
                         <div>
-                            <label class="text-sm font-medium">Selected file: {selectedFile.name}</label>
+                            <label class="text-sm font-medium" for="selectedFile">Selected file: {selectedFile.name}</label>
                         </div>
 
                         <div>
@@ -246,11 +248,12 @@
                                 placeholder="Enter file description..."
                                 class="w-full mt-1 p-2 border rounded-md resize-none"
                                 rows="3"
-                            />
+                            >
+                            </textarea>
                         </div>
 
                         <div>
-                            <label class="text-sm font-medium">Tags</label>
+                            <label class="text-sm font-medium" for="tags">Tags</label>
                             <div class="flex gap-2 mt-1">
                                 <input
                                     bind:value={newTag}
@@ -325,7 +328,7 @@
                     {/each}
                 {:else}
                     <Table.Row>
-                        <Table.Cell colspan="2" class="text-center py-8">
+                        <Table.Cell colspan={2} class="text-center py-8">
                             <span class="text-muted-foreground">No files in this space</span>
                         </Table.Cell>
                     </Table.Row>

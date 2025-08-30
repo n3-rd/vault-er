@@ -107,36 +107,45 @@ export const resetEmailSent = () => {
 
 // File operations using the authenticated client
 export const uploadFile = async (file: File, description?: string, tags?: string[]) => {
-  const state = get(authStore)
-  const { client } = state
-  if (!client) {
-    throw new Error('Not authenticated')
-  }
+  const { client } = get(authStore);
+  if (!client) throw new Error("Not authenticated");
 
-  // Ensure a current space is set and registered with a provider
-  const space = await client.currentSpace()
-  if (!space) {
-    throw new Error('No space selected. Choose a space before uploading.')
-  }
-  try {
-    const info = await client.capability.space.info(space.did())
-    if (!info || !info.providers || info.providers.length === 0) {
-      throw new Error('Current space is not registered with a provider.')
-    }
-  } catch (e) {
-    throw new Error('Current space is not registered (space/info failed). Please register the space and try again.')
-  }
+  const space = await client.currentSpace();
+  if (!space) throw new Error("No space selected");
 
-  try {
-    const cid = await client.uploadFile(file)
-    console.log("indexing upload", cid.toString(), file.name, space.did(), description, tags)
-    indexUpload(cid.toString(), file.name, space.did(), description, tags)
-    return cid.toString();
-  } catch (error) {
-    console.error('Upload error:', error)
-    throw error
-  }
-}
+  // Validate space registration
+  const info = await client.capability.space.info(space.did());
+  if (!info?.providers?.length) throw new Error("Space not registered with a provider");
+
+  // Upload with shard callback
+  const cidObj = await client.uploadFile(file, {
+    onShardStored: (meta) => console.log("Shard stored:", meta.cid.toString()),
+  });
+  const contentCID = cidObj.toString();
+
+  // Retrieve upload details including shard CIDs
+  const details = await client.capability.upload.get(cidObj);
+  const shardCids = (details.shards ?? details.blobs ?? []).map((c: any) => c.toString());
+
+  // Convert to proper CID instances if needed
+  const contentCidInst = CID.parse(contentCID);
+  const shardCidInsts = shardCids.map(s => CID.parse(s));
+
+  // (Optional) Re-register the upload explicitly if you used low-level APIs
+  // await client.capability.upload.add(contentCidInst, shardCidInsts);
+
+  // Persist metadata
+  await indexUpload(
+    contentCID,
+    file.name,
+    space.did(),
+    description,
+    tags,
+    shardCids
+  );
+
+  return contentCID;
+};
 
 export const downloadFile = async (fileId: string) => {
   const state = get(authStore)

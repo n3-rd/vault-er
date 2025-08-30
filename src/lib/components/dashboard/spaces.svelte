@@ -6,6 +6,8 @@
     import Icon from "@iconify/svelte";
     import { goToSpace } from "$lib/utils";
     import { toast } from "svelte-sonner";
+    import SearchDialog from "./SearchDialog.svelte";
+    import { searchOpen } from "$lib/ui-store";
 
     let spaces: any[] = $state([])
     let loading = $state(true)
@@ -13,6 +15,7 @@
     let spaceName = $state('')
     let creatingSpace = $state(false)
     let dialogOpen = $state(false);
+    let isSearchOpen = $searchOpen;
 
     $effect(() => {
         getSpaces()
@@ -28,13 +31,16 @@
 </script>
 
 <div class="space-y-6">
+
+    <SearchDialog />
     <div class="flex w-full items-center justify-between">
         <h2 class="text-2xl font-bold">Spaces</h2>
+        <div class="flex items-center gap-2">
         <Dialog.Root bind:open={dialogOpen}>
             <Dialog.Trigger>
             
         <Button>New Space</Button>
-        <Button variant="ghost"><Icon icon="fluent:search-24-regular" width="16" height="16" /></Button>
+       
 
             </Dialog.Trigger>
             <Dialog.Content>
@@ -73,6 +79,10 @@
                      </div>
             </Dialog.Content>
           </Dialog.Root>
+          <Button variant="ghost"
+          onclick={() => searchOpen.set(true)}
+          ><Icon icon="fluent:search-24-regular" width="16" height="16" /></Button>
+              </div>
     </div>
 
     {#if loading}
