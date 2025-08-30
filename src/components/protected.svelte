@@ -1,13 +1,7 @@
 <script lang="ts">
- import { authStore } from '$lib/auth-store'
-    
-    export let children: any
-  </script>
-  
-  {#if $authStore.loading}
-    <div>Loading...</div>
-  {:else if !$authStore.client}
-    <div class="text-green-400 text-7xl"></div>
-  {:else}
-    {@render children()}
-  {/if}
+  import ProtectedRoute from '$lib/components/auth/protected-route.svelte';
+
+  export let children: () => any;
+</script>
+
+<ProtectedRoute {children} />
