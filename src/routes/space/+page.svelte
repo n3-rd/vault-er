@@ -11,6 +11,7 @@
     import BackButton from "$lib/components/back-button.svelte";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
     import { toast } from 'svelte-sonner';
+    import { slide } from "svelte/transition";
 
     let currentSpace: Space | null = $state(null);
     // Shape inferred from usage of listContents()
@@ -176,11 +177,12 @@
         <h1 class="text-2xl font-bold flex flex-col gap-1">
             <span class="text-2xl font-bold flex items-center gap-2"
                 >{currentSpace?.name || "Unnamed space"}
-                <span class="text-sm text-muted-foreground">
                     {#if spaceContents}
+
+                <span class="text-sm text-muted-foreground" transition:slide>
                         {`(${spaceContents?.size})`}
-                    {/if}
                 </span>
+                    {/if}
                 {#if currentSpace?.access.type === "public"}
                     <Icon icon="fluent-color:globe-20" width="20" height="20" />
                 {:else}

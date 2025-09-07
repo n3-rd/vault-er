@@ -33,7 +33,7 @@
 <div class="space-y-6">
 
     <SearchDialog />
-    <div class="flex w-full items-center justify-between">
+    <div class="flex w-full items-center justify-between sticky top-0 bg-background z-10 py-4">
         <h2 class="text-2xl font-bold">Spaces</h2>
         <div class="flex items-center gap-2">
         <Dialog.Root bind:open={dialogOpen}>

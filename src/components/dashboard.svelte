@@ -6,7 +6,7 @@
 <div class="min-h-screen">
   <div>
     <DashboardHeader 
-      title="VaultLink Dashboard" 
+      title="Vault-er Dashboard" 
       subtitle="Secure decentralized file sharing" 
     />
 

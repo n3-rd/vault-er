@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { authStore } from '$lib/auth';
+  import { authStore } from '$lib/auth-store';
   import { onMount } from 'svelte';
   import Spinner from '$lib/components/ui/spinner.svelte';
 
@@ -10,11 +10,13 @@
   let isLoading = true;
 
   onMount(() => {
-    const unsubscribe = authStore.subscribe(({ isAuthenticated }) => {
-      if (!isAuthenticated) {
+    const unsubscribe = authStore.subscribe(({ client, loading }) => {
+      if (!loading && !client) {
         goto(redirectTo);
       }
-      isLoading = false;
+      if (!loading) {
+        isLoading = false;
+      }
     });
 
     return unsubscribe;
