@@ -12,6 +12,9 @@
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
     import { toast } from 'svelte-sonner';
     import { slide } from "svelte/transition";
+    import { getCurrentWebview } from '@tauri-apps/api/webview';
+    import { readFile } from '@tauri-apps/plugin-fs';
+    import { onMount } from 'svelte';
 
     let currentSpace: Space | null = $state(null);
     // Shape inferred from usage of listContents()
@@ -39,6 +42,11 @@
     let description = $state('');
     let tags = $state<string[]>([]);
     let newTag = $state('');
+    let dragEnter = $state(false);
+
+    // Global drag-drop state for Tauri events
+    let isDraggingOver = $state(false);
+    let draggedFiles: string[] = $state([]);
 
     function deriveExternalUrl(file: { cause: string; url?: string }) {
         if (file.url && /^https?:\/\//.test(file.url)) return file.url;
@@ -123,9 +131,37 @@
         event.preventDefault();
     }
 
+    async function handleDroppedFiles(paths: string[]) {
+        // Handle the first dropped file for now
+        const filePath = paths[0];
+        const fileName = filePath.split('/').pop() || 'unknown';
+
+        try {
+            toast.info(`Reading file: ${fileName}`);
+
+            // Read the file content as bytes
+            const fileContent = await readFile(filePath);
+
+            // Create a File object from the content
+            const file = new File([fileContent], fileName, {
+                type: 'application/octet-stream' // You might want to detect MIME type
+            });
+
+            // Set the file and open upload dialog
+            selectedFile = file;
+            uploadOpen = true;
+
+            toast.success(`File "${fileName}" ready for upload`);
+
+        } catch (error) {
+            console.error('Error reading dropped file:', error);
+            toast.error(`Failed to read file: ${fileName}`);
+        }
+    }
+
     async function startUpload() {
         if (!selectedFile) return;
-        
+
         try {
             uploading = true;
             const res = await uploadFile(selectedFile, description, tags);
@@ -157,6 +193,30 @@
         }
     }
 
+    onMount(async () => {
+        const unlisten = await getCurrentWebview().onDragDropEvent((event) => {
+            const { type, paths } = event.payload;
+
+            if (type === 'over') {
+                isDraggingOver = true;
+            } else if (type === 'drop') {
+                isDraggingOver = false;
+                draggedFiles = paths;
+                console.log('Dropped files:', paths);
+
+                // Handle the dropped files
+                if (paths.length > 0) {
+                    handleDroppedFiles(paths);
+                }
+            } else if (type === 'cancelled') {
+                isDraggingOver = false;
+                draggedFiles = [];
+            }
+        });
+
+        return () => unlisten();
+    });
+
     $effect(() => {
         (async () => {
             await getCurrentSpace().then((space) => {
@@ -172,6 +232,24 @@
 </script>
 
 <BackButton text="Back to spaces" />
+
+<!-- Drag overlay -->
+{#if isDraggingOver}
+    <div class="fixed inset-0 z-50 bg-primary/10 backdrop-blur-sm flex items-center justify-center pointer-events-none">
+        <div class="bg-background border-2 border-dashed border-primary rounded-lg p-8 text-center">
+            <Icon icon="mdi:upload" width="48" height="48" class="mx-auto mb-4 text-primary" />
+            <p class="text-lg font-medium">Drop files here to upload</p>
+            <p class="text-sm text-muted-foreground mt-2">
+                {#if draggedFiles.length > 0}
+                    {draggedFiles.length} file{draggedFiles.length === 1 ? '' : 's'} ready to upload
+                {:else}
+                    Drag files from your file system
+                {/if}
+            </p>
+        </div>
+    </div>
+{/if}
+
 <div class="flex items-center justify-between">
     <div class="flex items-start gap-2">
         <h1 class="text-2xl font-bold flex flex-col gap-1">
@@ -216,7 +294,9 @@
 
             <div class="space-y-4">
                 <button
-                    class="h-44 w-full border-2 border-primary border-dashed rounded-md flex flex-col items-center justify-center gap-2 cursor-pointer select-none"
+                    class={`h-44 w-full border-2 border-primary border-dashed rounded-md flex flex-col items-center justify-center gap-2 cursor-pointer select-none ${dragEnter ? 'border-primary' : 'border-dashed'}`}
+                    ondragenter={() => dragEnter = true}
+                    ondragleave={() => dragEnter = false}
                     onclick={onBrowseClick}
                     ondragover={handleDragOver}
                     ondrop={handleDrop}
@@ -225,13 +305,13 @@
                 >
                     <Icon icon="mdi:upload" width="40" height="40" />
                     <span class="text-sm text-muted-foreground">
-                        {uploading ? 'Uploading…' : 'Drag and drop a file here or click to upload'}
+                        {uploading ? 'Uploading…' : draggedFiles.length > 0 ? 'Dropped files ready to upload' : 'Drag and drop a file here or click to upload'}
                     </span>
                     <input
                         bind:this={fileInput}
                         type="file"
                         class="hidden"
-                        disabled={uploading}
+                        disabled={uploading || draggedFiles.length > 0}
                         onchange={onFileChange}
                     />
                 </button>
