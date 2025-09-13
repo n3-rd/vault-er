@@ -22,9 +22,9 @@ export const goToSpace = async (spaceId: string) => {
    })
 }
 
-export const copyToClipboard = async (text: string) => {
+export const copyToClipboard = async (text: string, message: string = 'Copied to clipboard') => {
 	await navigator.clipboard.writeText(text).then(() => {
-		toast.success('Copied to clipboard')
+		toast.success(message)
 	})
 }
 
