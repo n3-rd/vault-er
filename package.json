@@ -15,10 +15,12 @@
   "dependencies": {
     "@storacha/client": "^1.7.6",
     "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-fs": "^2",
     "@tauri-apps/plugin-opener": "^2",
     "@tauri-apps/plugin-store": "^2.3.0",
     "dexie": "^4.2.0",
     "multiformats": "^13.4.0",
+    "svelte-qrcode": "^1.0.1",
     "yet-another-name-generator": "^1.2.0"
   },
   "devDependencies": {

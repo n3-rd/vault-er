@@ -10,8 +10,13 @@
     import Icon from "@iconify/svelte";
     import BackButton from "$lib/components/back-button.svelte";
     import { Skeleton } from "$lib/components/ui/skeleton/index.js";
+    import QrShareDialog from "$lib/components/qr-share-dialog.svelte";
     import { toast } from 'svelte-sonner';
     import { slide } from "svelte/transition";
+    import { getCurrentWebview } from '@tauri-apps/api/webview';
+    import { readFile } from '@tauri-apps/plugin-fs';
+    import { onMount } from 'svelte';
+    import * as ContextMenu from "$lib/components/ui/context-menu/index.js";
 
     let currentSpace: Space | null = $state(null);
     // Shape inferred from usage of listContents()
@@ -39,11 +44,31 @@
     let description = $state('');
     let tags = $state<string[]>([]);
     let newTag = $state('');
+    let dragEnter = $state(false);
+
+    // QR code sharing dialog state
+    let qrOpen = $state(false);
+    let qrValue = $state('');
+    let qrTitle = $state('');
+
+    // Global drag-drop state for Tauri events
+    let isDraggingOver = $state(false);
+    let draggedFiles: string[] = $state([]);
 
     function deriveExternalUrl(file: { cause: string; url?: string }) {
         if (file.url && /^https?:\/\//.test(file.url)) return file.url;
         // Fallback to public IPFS gateway as heuristic
         return `https://${file.cause}.ipfs.w3s.link`;
+    }
+
+    function showQrDialog(value: string, title: string) {
+        qrValue = value;
+        qrTitle = title;
+        qrOpen = true;
+    }
+
+    function handleQrOpenChange(open: boolean) {
+        qrOpen = open;
     }
 
     function handleFileClick(file: { cause: string; url?: string }) {
@@ -123,15 +148,50 @@
         event.preventDefault();
     }
 
+    async function handleDroppedFiles(paths: string[]) {
+        // Handle the first dropped file for now
+        const filePath = paths[0];
+        const fileName = filePath.split('/').pop() || 'unknown';
+
+        try {
+            toast.info(`Reading file: ${fileName}`);
+
+            // Read the file content as bytes
+            const fileContent = await readFile(filePath);
+
+            // Create a File object from the content
+            const file = new File([fileContent], fileName, {
+                type: 'application/octet-stream' // You might want to detect MIME type
+            });
+
+            // Set the file and open upload dialog
+            selectedFile = file;
+            uploadOpen = true;
+
+            toast.success(`File "${fileName}" ready for upload`);
+
+        } catch (error) {
+            console.error('Error reading dropped file:', error);
+            toast.error(`Failed to read file: ${fileName}`);
+        }
+    }
+
     async function startUpload() {
         if (!selectedFile) return;
-        
+
         try {
             uploading = true;
             const res = await uploadFile(selectedFile, description, tags);
             toast.success('Upload complete');
             console.log("res", res);
             await refreshContents();
+
+            // Show QR code for the uploaded file
+            if (res?.cid) {
+                const fileUrl = deriveExternalUrl({ cause: res.cid });
+                showQrDialog(fileUrl, `Share ${selectedFile.name}`);
+            }
+
             uploadOpen = false;
             resetUploadForm();
         } catch (e) {
@@ -144,6 +204,13 @@
                     toast.success('Upload complete');
                     console.log("res2", res2);
                     await refreshContents();
+
+                    // Show QR code for the uploaded file
+                    if (res2?.cid) {
+                        const fileUrl = deriveExternalUrl({ cause: res2.cid });
+                        showQrDialog(fileUrl, `Share ${selectedFile!.name}`);
+                    }
+
                     uploadOpen = false;
                     resetUploadForm();
                     return;
@@ -156,6 +223,35 @@
             uploading = false;
         }
     }
+
+    onMount(() => {
+        let unlisten: (() => void) | null = null;
+
+        getCurrentWebview().onDragDropEvent((event: any) => {
+            const { type, paths } = (event as any).payload;
+
+            if (type === 'over') {
+                isDraggingOver = true;
+            } else if (type === 'drop') {
+                isDraggingOver = false;
+                draggedFiles = paths || [];
+                console.log('Dropped files:', paths);
+
+                // Handle the dropped files
+                if (paths && paths.length > 0) {
+                    handleDroppedFiles(paths);
+                }
+            } else if (type === 'leave') {
+                isDraggingOver = false;
+            }
+        }).then((cleanup) => {
+            unlisten = cleanup;
+        });
+
+        return () => {
+            if (unlisten) unlisten();
+        };
+    });
 
     $effect(() => {
         (async () => {
@@ -172,6 +268,24 @@
 </script>
 
 <BackButton text="Back to spaces" />
+
+<!-- Drag overlay -->
+{#if isDraggingOver}
+    <div class="fixed inset-0 z-50 bg-primary/10 backdrop-blur-sm flex items-center justify-center pointer-events-none">
+        <div class="bg-background border-2 border-dashed border-primary rounded-lg p-8 text-center">
+            <Icon icon="mdi:upload" width="48" height="48" class="mx-auto mb-4 text-primary" />
+            <p class="text-lg font-medium">Drop files here to upload</p>
+            <p class="text-sm text-muted-foreground mt-2">
+                {#if draggedFiles.length > 0}
+                    {draggedFiles.length} file{draggedFiles.length === 1 ? '' : 's'} ready to upload
+                {:else}
+                    Drag files from your file system
+                {/if}
+            </p>
+        </div>
+    </div>
+{/if}
+
 <div class="flex items-center justify-between">
     <div class="flex items-start gap-2">
         <h1 class="text-2xl font-bold flex flex-col gap-1">
@@ -199,6 +313,13 @@
                     class="cursor-pointer hover:scale-110"
                     onclick={() => currentSpace && copyToClipboard(currentSpace.did())}
                 />
+                <Icon
+                    icon="mdi:qrcode"
+                    width="20"
+                    height="20"
+                    class="cursor-pointer hover:scale-110"
+                    onclick={() => currentSpace && showQrDialog(currentSpace.did(), 'Share Space DID')}
+                />
             </span>
         </h1>
         <span> </span>
@@ -216,7 +337,9 @@
 
             <div class="space-y-4">
                 <button
-                    class="h-44 w-full border-2 border-primary border-dashed rounded-md flex flex-col items-center justify-center gap-2 cursor-pointer select-none"
+                    class={`h-44 w-full border-2 border-primary border-dashed rounded-md flex flex-col items-center justify-center gap-2 cursor-pointer select-none ${dragEnter ? 'border-primary' : 'border-dashed'}`}
+                    ondragenter={() => dragEnter = true}
+                    ondragleave={() => dragEnter = false}
                     onclick={onBrowseClick}
                     ondragover={handleDragOver}
                     ondrop={handleDrop}
@@ -225,13 +348,13 @@
                 >
                     <Icon icon="mdi:upload" width="40" height="40" />
                     <span class="text-sm text-muted-foreground">
-                        {uploading ? 'Uploading…' : 'Drag and drop a file here or click to upload'}
+                        {uploading ? 'Uploading…' : draggedFiles.length > 0 ? 'Dropped files ready to upload' : 'Drag and drop a file here or click to upload'}
                     </span>
                     <input
                         bind:this={fileInput}
                         type="file"
                         class="hidden"
-                        disabled={uploading}
+                        disabled={uploading || draggedFiles.length > 0}
                         onchange={onFileChange}
                     />
                 </button>
@@ -299,6 +422,7 @@
 </div>
 
 
+
     <Table.Root class="mt-4">
         <Table.Header>
             <Table.Row>
@@ -310,10 +434,23 @@
             {#if spaceContents}
                 {#if spaceContents.results && spaceContents.results.length > 0}
                     {#each spaceContents.results as file}
+               
                         <Table.Row class="cursor-pointer hover:bg-secondary" onclick={() => handleFileClick(file)}>
-                            <Table.Cell class="font-medium">
-                                {file.cause}
-                            </Table.Cell>
+                            <ContextMenu.Root>
+                                <ContextMenu.Trigger>
+                                    <Table.Cell class="font-medium flex items-center gap-2">
+                                        <button onclick={(e) => { e.stopPropagation(); handleFileClick(file); }} class="text-left hover:underline focus:outline-none focus:underline">
+                                            {file.cause}
+                                        </button>
+                                    </Table.Cell>
+                                </ContextMenu.Trigger>
+                                <ContextMenu.Content>
+                                  <ContextMenu.Item onclick={() => showQrDialog(file.cause, `Share ${file.cause}`)} class="flex items-center justify-between"><span>Show QR Code</span> <Icon icon="mdi:qrcode" width="16" height="16" /></ContextMenu.Item>
+                                  <ContextMenu.Item onclick={() => copyToClipboard(file.cause, 'Copied CID to clipboard')} class="flex items-center justify-between"><span>Copy CID</span> <Icon icon="ic:baseline-content-copy" width="16" height="16" /></ContextMenu.Item>
+                                  <ContextMenu.Item onclick={() => copyToClipboard(deriveExternalUrl(file), 'Copied URL to clipboard')} class="flex items-center justify-between"><span>Copy URL</span> <Icon icon="ic:baseline-content-copy" width="16" height="16" /></ContextMenu.Item>
+                                </ContextMenu.Content>
+                              </ContextMenu.Root>
+                        
                             <Table.Cell class="text-right">
                                 <Tooltip.Provider>
                                     <Tooltip.Root>
@@ -370,3 +507,13 @@
         </Dialog.Footer>
     </Dialog.Content>
 </Dialog.Root>
+
+
+
+<!-- QR code sharing dialog -->
+<QrShareDialog
+    open={qrOpen}
+    value={qrValue}
+    title={qrTitle}
+    onOpenChange={handleQrOpenChange}
+/>

@@ -9,6 +9,20 @@
     "core:default",
     "opener:default",
     "store:default",
-    "cors-fetch:default"
+    "cors-fetch:default",
+    "fs:allow-read-file",
+    "fs:allow-read-text-file",
+    {
+      "identifier": "fs:allow-read-file",
+      "allow": [
+        { "path": "**" }
+      ]
+    },
+    {
+      "identifier": "fs:allow-read-text-file",
+      "allow": [
+        { "path": "**" }
+      ]
+    }
   ]
 }
