@@ -1,0 +1,23 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "dropzone",
+  "description": "Capability for the dropzone window",
+  "windows": [
+    "dropzone"
+  ],
+  "permissions": [
+    "core:default",
+    "core:window:allow-hide",
+    "store:default",
+    "dialog:default",
+    "cors-fetch:default",
+    "fs:allow-read-file",
+    {
+      "identifier": "fs:allow-read-file",
+      "allow": [
+        { "path": "**" }
+      ]
+    }
+  ]
+}
+
