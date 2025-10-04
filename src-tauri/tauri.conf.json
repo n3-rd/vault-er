@@ -14,7 +14,21 @@
       {
         "title": "vault-er",
         "width": 800,
-        "height": 600
+        "height": 600,
+        "label": "main"
+      },
+      {
+        "title": "Drop Zone",
+        "width": 600,
+        "height": 480,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "visible": false,
+        "resizable": false,
+        "label": "dropzone",
+        "url": "/dropzone",
+        "dragDropEnabled": true
       }
     ],
     "withGlobalTauri": true,
