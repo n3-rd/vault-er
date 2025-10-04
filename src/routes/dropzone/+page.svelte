@@ -89,7 +89,7 @@
 
     if (paths.length === 0) return;
 
-    // I did this to make sure the space is selected
+    // Ensure a space is selected before attempting file upload
     const hasSpace = await ensureSpaceSelected();
     if (!hasSpace) {
       addLog('⚠️ Please select a space first');
