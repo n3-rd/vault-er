@@ -445,7 +445,7 @@
                                     </Table.Cell>
                                 </ContextMenu.Trigger>
                                 <ContextMenu.Content>
-                                  <ContextMenu.Item onclick={() => showQrDialog(file.cause, `Share ${file.cause}`)} class="flex items-center justify-between"><span>Show QR Code</span> <Icon icon="mdi:qrcode" width="16" height="16" /></ContextMenu.Item>
+                                  <ContextMenu.Item onclick={() => showQrDialog(deriveExternalUrl(file), `Share ${file.cause}`)} class="flex items-center justify-between"><span>Show QR Code</span> <Icon icon="mdi:qrcode" width="16" height="16" /></ContextMenu.Item>
                                   <ContextMenu.Item onclick={() => copyToClipboard(file.cause, 'Copied CID to clipboard')} class="flex items-center justify-between"><span>Copy CID</span> <Icon icon="ic:baseline-content-copy" width="16" height="16" /></ContextMenu.Item>
                                   <ContextMenu.Item onclick={() => copyToClipboard(deriveExternalUrl(file), 'Copied URL to clipboard')} class="flex items-center justify-between"><span>Copy URL</span> <Icon icon="ic:baseline-content-copy" width="16" height="16" /></ContextMenu.Item>
                                 </ContextMenu.Content>
