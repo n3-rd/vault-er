@@ -39,17 +39,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # --- Node & pnpm (switch cache: 'npm' or 'yarn' if you use those) ---
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
+      # --- Node & npm (switch cache: 'npm' or 'yarn' if you use those) ---
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
-          cache: 'pnpm'
+          cache: npm
 
       # --- Rust (and cache) ---
       - name: Install Rust
@@ -77,11 +72,11 @@ jobs:
 
       # --- JS deps and web build (if not using beforeBuildCommand in Tauri config) ---
       - name: Install frontend deps
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       # If your Tauri config doesn't run your web build automatically, uncomment:
       # - name: Build web
-      #   run: pnpm build
+      #   run: npm run build
 
       # --- Tauri build + GitHub Release upload ---
       - name: Build & Release with Tauri
