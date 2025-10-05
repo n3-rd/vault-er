@@ -1,0 +1,118 @@
+name: publish
+
+on:
+  push:
+    branches:
+      - release        # push to 'release' to ship
+  workflow_dispatch:   # allow manual runs
+
+permissions:
+  contents: write      # needed to create/upload GitHub Releases
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-release:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # macOS builds (both architectures so every Mac gets a native build)
+          - platform: macos-latest
+            args: --target aarch64-apple-darwin
+          - platform: macos-latest
+            args: --target x86_64-apple-darwin
+
+          # Linux (AppImage/deb/rpm as configured by Tauri)
+          - platform: ubuntu-22.04
+            args: ""
+
+          # Windows (NSIS/WiX as configured by Tauri)
+          - platform: windows-latest
+            args: ""
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # --- Node & pnpm (switch cache: 'npm' or 'yarn' if you use those) ---
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      # --- Rust (and cache) ---
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          # Only needed on macOS so Linux/Windows don't waste time
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      # --- Linux build deps required by WebKitGTK / tray / bundling ---
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.0-dev \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf
+
+      # --- JS deps and web build (if not using beforeBuildCommand in Tauri config) ---
+      - name: Install frontend deps
+        run: pnpm install --frozen-lockfile
+
+      # If your Tauri config doesn't run your web build automatically, uncomment:
+      # - name: Build web
+      #   run: pnpm build
+
+      # --- Tauri build + GitHub Release upload ---
+      - name: Build & Release with Tauri
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          # ===== OPTIONAL: macOS signing / notarization =====
+          # APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}                # base64 .p12
+          # APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # APPLE_ID: ${{ secrets.APPLE_ID }}                                  # Apple ID email
+          # APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}                      # app-specific password
+          #
+          # ===== OPTIONAL: Windows signing =====
+          # WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}            # base64 PFX (legacy OV)
+          # WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+          # AZURE_TRUSTED_SIGNING_TENANT: ${{ secrets.AZURE_TRUSTED_SIGNING_TENANT }}   # if using Azure/EV flow
+          # ...add any tool-specific env recommended by your CA
+
+        with:
+          # If your Tauri project is not at repo root, set projectPath: 'apps/desktop' etc.
+          # projectPath: .
+
+          # These control the GitHub Release the action creates:
+          tagName: app-v__VERSION__                 # __VERSION__ = Tauri/app version
+          releaseName: "App v__VERSION__"
+          releaseBody: "See the assets to download this version and install."
+          releaseDraft: true                        # flip to false when you're ready
+          prerelease: false
+          args: ${{ matrix.args }}
+
+      # If you prefer artifacts instead of Releases, comment the step above and
+      # add actions/upload-artifact for each platform result.
