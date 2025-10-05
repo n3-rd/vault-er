@@ -19,27 +19,45 @@ export const authStore = writable<AuthState>({
   emailSentTo: null
 })
 
-// Initialize auth
+// Initialize auth with timeout and better error handling
 ;(async () => {
+  const timeout = setTimeout(() => {
+    console.warn('Auth initialization timed out, falling back to unauthenticated state')
+    authStore.update(state => ({ ...state, loading: false }))
+  }, 10000) // 10 second timeout
+
   try {
     const c = await create()
     const store = await load('auth.json')
     const email = await store.get('email')
     if (email) {
       try {
-        await c.login(email as `${string}@${string}`)
+        await Promise.race([
+          c.login(email as `${string}@${string}`),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Login timeout')), 5000)
+          )
+        ])
+        clearTimeout(timeout)
         authStore.update(state => ({ ...state, client: c, loading: false }))
       } catch (e) {
         console.error('Login failed or timed out:', e)
-        await store.delete('email')
-        await store.save()
+        try {
+          await store.delete('email')
+          await store.save()
+        } catch (storeError) {
+          console.error('Failed to clear stored email:', storeError)
+        }
+        clearTimeout(timeout)
         authStore.update(state => ({ ...state, loading: false }))
       }
     } else {
+      clearTimeout(timeout)
       authStore.update(state => ({ ...state, loading: false }))
     }
   } catch (error) {
     console.error('Auth initialization error:', error)
+    clearTimeout(timeout)
     authStore.update(state => ({ ...state, loading: false }))
   }
 })()

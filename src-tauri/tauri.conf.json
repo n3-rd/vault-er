@@ -33,7 +33,7 @@
     ],
     "withGlobalTauri": true,
     "security": {
-      "csp": null
+      "csp": "default-src 'self' ipc: https://ipc.localhost https://*.localhost:* http://localhost:*; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' ipc: https: http: ws: wss:; object-src 'none'; base-uri 'self'; form-action 'self';"
     }
   },
   "bundle": {
