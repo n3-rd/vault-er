@@ -1,29 +1,43 @@
 <script lang="ts">
+    import { onDestroy } from "svelte";
     import { Button } from "$lib/components/ui/button";
     import { Input } from "$lib/components/ui/input";
     import { Label } from "$lib/components/ui/label";
     import { toast } from "svelte-sonner";
     import { goto } from "$app/navigation";
     import { login } from "$lib/auth";
+    import { authStore, type AuthState } from "$lib/auth-store";
     import Shape1 from "$lib/components/shapes/shape1.svelte";
 
     let email = "";
     let isLoading = false;
+    let emailSent = false;
+
+    let authState: AuthState = { client: null, loading: false, emailSent: false, emailSentTo: null };
+    const unsubscribe = authStore.subscribe((state) => {
+        authState = state;
+    });
+
+    onDestroy(() => {
+        unsubscribe();
+    });
 
     async function handleSubmit() {
         isLoading = true;
+        emailSent = false;
         const controller = new AbortController();
         const signal = controller.signal;
 
         try {
             // This promise simulates an email verification notification.
-            // It waits 4 seconds to show a toast message unless aborted.
+            // It waits 4 seconds to show a toast message unless aborted or email verification not needed.
             const verifyEmailModal = new Promise<void>((resolve) => {
                 const timeout = setTimeout(() => {
-                    if (!signal.aborted) {
+                    if (!signal.aborted && authState.emailSent) {
                         toast.info(
                             "We sent a verification link to your email!",
                         );
+                        emailSent = true;
                     }
                     resolve();
                 }, 4000);
@@ -44,6 +58,7 @@
             );
         } finally {
             isLoading = false;
+            emailSent = false;
         }
     }
 </script>
@@ -93,7 +108,18 @@
                 disabled={isLoading}
                 class="w-full h-10 sm:h-12 text-sm sm:text-base"
             >
-                {isLoading ? "Logging in..." : "Login"}
+                {#if isLoading}
+                    {#if emailSent}
+                        <span class="inline-flex items-center gap-2">
+                            <Shape1 className="spin-slow" color="#D0BCFF" height={20} width={20} />
+                            Email sent
+                        </span>
+                    {:else}
+                        Logging in...
+                    {/if}
+                {:else}
+                    Login
+                {/if}
             </Button>
         </form>
     </div>
