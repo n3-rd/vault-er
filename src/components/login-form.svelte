@@ -11,7 +11,6 @@
 
     let email = "";
     let isLoading = false;
-    let emailSent = false;
 
     let authState: AuthState = { client: null, loading: false, emailSent: false, emailSentTo: null };
     const unsubscribe = authStore.subscribe((state) => {
@@ -24,7 +23,6 @@
 
     async function handleSubmit() {
         isLoading = true;
-        emailSent = false;
         const controller = new AbortController();
         const signal = controller.signal;
 
@@ -37,7 +35,6 @@
                         toast.info(
                             "We sent a verification link to your email!",
                         );
-                        emailSent = true;
                     }
                     resolve();
                 }, 4000);
@@ -58,7 +55,6 @@
             );
         } finally {
             isLoading = false;
-            emailSent = false;
         }
     }
 </script>
@@ -109,7 +105,7 @@
                 class="w-full h-10 sm:h-12 text-sm sm:text-base"
             >
                 {#if isLoading}
-                    {#if emailSent}
+                    {#if authState.emailSent}
                         <span class="inline-flex items-center gap-2">
                             <Shape1 className="spin-slow" color="#D0BCFF" height={20} width={20} />
                             Email sent
