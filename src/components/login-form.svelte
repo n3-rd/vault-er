@@ -7,7 +7,7 @@
     import { goto } from "$app/navigation";
     import { login } from "$lib/auth";
     import { authStore, type AuthState } from "$lib/auth-store";
-    import Shape1 from "$lib/components/shapes/shape1.svelte";
+    import Icon from "@iconify/svelte";
 
     let email = "";
     let isLoading = false;
@@ -59,64 +59,80 @@
     }
 </script>
 
-<div
-    class="h-[85vh] w-screen flex items-center justify-center relative px-4 sm:px-6 lg:px-8"
->
-    <Shape1
-        className="absolute -top-12 -right-12 spin-slow"
-        color="#D0BCFF"
-        height={200}
-        width={200}
-    />
-    <div class="w-full max-w-md lg:max-w-lg xl:max-w-xl space-y-6">
-        <div class="flex flex-col gap-6 w-full">
-            <h1
-                class="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold uppercase"
-            >
-                Secure <span class="text-primary">decentralized</span> <br /> file
-                sharing
-            </h1>
-            <p class="text-base sm:text-lg lg:text-xl text-muted-foreground">
-                Share files with friends and family securely and privately.
-            </p>
+<div class="relative flex min-h-[calc(100vh-8rem)] w-full items-center justify-center px-4 py-10">
+    <div class="pointer-events-none absolute -top-16 right-8 h-56 w-56 rounded-full bg-[radial-gradient(circle,_rgba(185,0,0,0.25)_0%,_transparent_70%)] blur-2xl"></div>
+    <div class="pointer-events-none absolute -bottom-20 left-12 h-64 w-64 rounded-full bg-[radial-gradient(circle,_rgba(255,107,107,0.28)_0%,_transparent_70%)] blur-2xl"></div>
+
+    <div class="relative grid w-full max-w-4xl gap-8 rounded-[2rem] border border-black/5 bg-white/80 p-8 shadow-[0_35px_90px_-45px_rgba(15,23,42,0.4)] backdrop-blur-2xl dark:border-white/10 dark:bg-white/10 md:grid-cols-[1.15fr_1fr]">
+        <div class="flex flex-col justify-between gap-10">
+            <div class="space-y-4">
+                <span class="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/75 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-black/60 shadow-sm dark:border-white/10 dark:bg-white/10 dark:text-white/60">
+                    Vault-er
+                </span>
+                <h1 class="text-3xl font-semibold text-black/85 md:text-4xl dark:text-white/90">
+                    Sign in to your native vault
+                </h1>
+                <p class="text-sm text-black/60 md:text-base dark:text-white/60">
+                    Experience a desktop-class interface with secure, passwordless access to your decentralized storage.
+                </p>
+            </div>
+            <div class="grid gap-3 rounded-2xl border border-black/10 bg-white/90 p-5 text-sm text-black/65 shadow-inner dark:border-white/10 dark:bg-white/5 dark:text-white/60">
+                <div class="flex items-center gap-3">
+                    <Icon icon="mdi:lock-check" width="20" height="20" class="text-primary" />
+                    Passwordless email magic links keep sign-in fast and secure.
+                </div>
+                <div class="flex items-center gap-3">
+                    <Icon icon="mdi:folder-sync" width="20" height="20" class="text-primary" />
+                    Seamless syncing across every device with native polish.
+                </div>
+            </div>
         </div>
 
         <form
             on:submit|preventDefault={handleSubmit}
-            class="space-y-4 sm:space-y-6"
+            class="flex items-center"
         >
-            <div>
-                <Label htmlFor="email" className="text-sm sm:text-base"
-                    >Email</Label
-                >
-                <Input
-                    id="email"
-                    type="email"
-                    bind:value={email}
-                    placeholder="Enter your email"
-                    required
-                    class="h-10 sm:h-12 text-sm sm:text-base"
-                />
+            <div class="w-full rounded-[1.5rem] border border-black/10 bg-white/95 p-7 shadow-lg shadow-black/10 dark:border-white/10 dark:bg-neutral-950">
+                <div class="space-y-6">
+                    <div class="space-y-2">
+                        <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-[0.25em] text-black/50 dark:text-white/55">
+                            Email address
+                        </Label>
+                        <Input
+                            id="email"
+                            type="email"
+                            bind:value={email}
+                            placeholder="you@example.com"
+                            required
+                            class="h-12 rounded-xl border border-black/10 bg-white/90 px-4 text-sm outline-none transition focus:border-black/40 focus:ring-0 dark:border-white/15 dark:bg-white/5 dark:text-white/80"
+                        />
+                    </div>
+                    <Button
+                        type="submit"
+                        disabled={isLoading}
+                        class="h-12 w-full rounded-full bg-black text-sm font-semibold text-white shadow-lg shadow-black/25 transition hover:bg-black/90 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-white dark:text-black dark:hover:bg-white/90"
+                    >
+                        {#if isLoading}
+                            {#if authState.emailSent}
+                                <span class="inline-flex items-center gap-2">
+                                    <Icon icon="svg-spinners:3-dots-fade" width="20" height="20" />
+                                    Email sent
+                                </span>
+                            {:else}
+                                <span class="inline-flex items-center gap-2">
+                                    <Icon icon="svg-spinners:blocks-scale" width="20" height="20" />
+                                    Checking…
+                                </span>
+                            {/if}
+                        {:else}
+                            Continue with email
+                        {/if}
+                    </Button>
+                    <p class="text-xs text-black/45 dark:text-white/50">
+                        We’ll email you a secure link. No passwords to remember.
+                    </p>
+                </div>
             </div>
-
-            <Button
-                type="submit"
-                disabled={isLoading}
-                class="w-full h-10 sm:h-12 text-sm sm:text-base"
-            >
-                {#if isLoading}
-                    {#if authState.emailSent}
-                        <span class="inline-flex items-center gap-2">
-                            <Shape1 className="spin-slow" color="#D0BCFF" height={20} width={20} />
-                            Email sent
-                        </span>
-                    {:else}
-                        Logging in...
-                    {/if}
-                {:else}
-                    Login
-                {/if}
-            </Button>
         </form>
     </div>
 </div>
