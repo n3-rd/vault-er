@@ -3,15 +3,11 @@
   import Spaces from '$lib/components/dashboard/spaces.svelte';
 </script>
 
-<div class="min-h-screen">
-  <div>
-    <DashboardHeader 
-      title="Vault-er Dashboard" 
-      subtitle="Secure decentralized file sharing" 
-    />
+<div class="flex flex-col gap-8">
+  <DashboardHeader 
+    title="Vault-er Dashboard" 
+    subtitle="Secure decentralized file sharing" 
+  />
 
-    <div class="w-full">
-      <Spaces />
-    </div>
-  </div>
+  <Spaces />
 </div>
