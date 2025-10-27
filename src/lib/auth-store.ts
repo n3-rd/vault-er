@@ -3,7 +3,7 @@ import { create } from '@storacha/client'
 import { load } from '@tauri-apps/plugin-store'
 import { generate } from 'yet-another-name-generator'
 import { CID } from 'multiformats/cid'
-import { indexUpload } from './indexer'
+import { indexUpload, type IndexedFile } from './indexer'
 
 export type AuthState = {
   client: any | null
@@ -124,7 +124,7 @@ export const resetEmailSent = () => {
 }
 
 // File operations using the authenticated client
-export const uploadFile = async (file: File, description?: string, tags?: string[]) => {
+export const uploadFile = async (file: File, description?: string, tags?: string[]): Promise<IndexedFile> => {
   const { client } = get(authStore);
   if (!client) throw new Error("Not authenticated");
 
@@ -137,7 +137,8 @@ export const uploadFile = async (file: File, description?: string, tags?: string
 
   // Upload with shard callback
   const cidObj = await client.uploadFile(file, {
-    onShardStored: (meta) => console.log("Shard stored:", meta.cid.toString()),
+    onShardStored: (meta: { cid: { toString(): string } }) =>
+      console.log("Shard stored:", meta.cid.toString()),
   });
   const contentCID = cidObj.toString();
 
@@ -147,22 +148,28 @@ export const uploadFile = async (file: File, description?: string, tags?: string
 
   // Convert to proper CID instances if needed
   const contentCidInst = CID.parse(contentCID);
-  const shardCidInsts = shardCids.map(s => CID.parse(s));
+  const shardCidInsts = shardCids.map((s: string) => CID.parse(s));
 
   // (Optional) Re-register the upload explicitly if you used low-level APIs
   // await client.capability.upload.add(contentCidInst, shardCidInsts);
 
-  // Persist metadata
-  await indexUpload(
-    contentCID,
-    file.name,
-    space.did(),
+  const spaceMeta =
+    typeof space.meta === 'function' ? space.meta() : space.meta;
+
+  // Persist metadata in the local index for search
+  const indexed = await indexUpload({
+    cid: contentCID,
+    name: file.name,
+    spaceDid: space.did(),
+    spaceName: spaceMeta?.name ?? undefined,
     description,
     tags,
-    shardCids
-  );
+    shards: shardCids,
+    size: typeof file.size === 'number' ? file.size : undefined,
+    mimeType: file.type || undefined,
+  });
 
-  return contentCID;
+  return indexed;
 };
 
 export const downloadFile = async (fileId: string) => {
@@ -309,4 +316,3 @@ export const createSpace = async (name?: string) => {
     return space
   })
 }
-

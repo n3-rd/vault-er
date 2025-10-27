@@ -1,22 +1,35 @@
 import Dexie, { type EntityTable } from 'dexie';
 
-interface File {
-    cid: string
-    name: string
-    description?: string
-    tags?: string[],
-    createdAt: Date,
-    spaceDid: string,
-    shards?: string[],
+export interface IndexedFile {
+    cid: string;
+    name: string;
+    description?: string;
+    tags?: string[];
+    createdAt: Date;
+    updatedAt: Date;
+    spaceDid: string;
+    spaceName?: string;
+    shards?: string[];
+    size?: number;
+    mimeType?: string;
+    nameLower: string;
+    searchText: string;
 }
 
-interface FileTable extends EntityTable<File, 'cid'> {}
+export interface FileTable extends EntityTable<IndexedFile, 'cid'> {}
 
-const db = new Dexie('storacha_index');
+class VaultIndexDB extends Dexie {
+    files!: FileTable;
 
-db.version(2).stores({
-    files: 'cid, name, description, tags, createdAt, spaceDid, shards'
-})
+    constructor() {
+        super('storacha_index');
 
-export type { File, FileTable };
-export {db};
+        this.version(3).stores({
+            files: '&cid, spaceDid, nameLower, searchText, createdAt, updatedAt, *tags, *shards'
+        });
+
+        this.files = this.table('files');
+    }
+}
+
+export const db = new VaultIndexDB();
