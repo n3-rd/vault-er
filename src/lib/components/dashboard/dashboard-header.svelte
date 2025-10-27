@@ -1,8 +1,8 @@
 <script lang="ts">
   import { Button } from "$lib/components/ui/button";
   import { logoutUser } from '$lib/auth';
-  import { goto } from '$app/navigation';
   import { toast } from 'svelte-sonner';
+  import NativeSurface from '$lib/components/native-surface.svelte';
 
   export let title: string = 'Dashboard';
   export let subtitle: string = 'Manage your resources';
@@ -19,15 +19,18 @@
 
 </script>
 
-<div class="flex justify-between items-center mb-8">
+<NativeSurface class="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
   <div>
-    <h1 class="text-4xl font-bold">{title}</h1>
-    <p class="text-muted-foreground mt-2">{subtitle}</p>
+    <h1 class="text-2xl font-semibold text-black/85 dark:text-white/90">{title}</h1>
+    {#if subtitle}
+      <p class="text-sm text-black/60 dark:text-white/60">{subtitle}</p>
+    {/if}
   </div>
-  <Button 
+  <Button
     onclick={handleLogout}
-    variant="outline"
+    variant="ghost"
+    class="h-10 rounded-full border border-black/10 bg-white/70 px-4 text-sm font-semibold text-black hover:bg-white dark:border-white/20 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
   >
     Logout
   </Button>
-</div> 
+</NativeSurface>

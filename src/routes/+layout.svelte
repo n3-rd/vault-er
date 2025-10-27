@@ -5,6 +5,8 @@
 	let { children } = $props();
 </script>
 <Toaster />
-<div class="container mx-auto py-8">
-	{@render children()}
+<div class="min-h-screen bg-background">
+	<div class="container mx-auto px-4 py-10 md:px-6">
+		{@render children()}
+	</div>
 </div>
