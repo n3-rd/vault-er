@@ -26,13 +26,15 @@
             url?: string;
         }>;
     };
-    let spaceContents: SpaceContents | null = $state(null);
-
-    const fileCount = $derived(spaceContents?.results ? spaceContents.results.length : 0);
-    const totalBytes = $derived(
-        spaceContents?.results
-            ? spaceContents.results.reduce((acc, file) => acc + (file?.blob?.size ?? 0), 0)
-            : 0
+    let spaceContents = $state<SpaceContents | null>(null);
+    type SpaceResult = SpaceContents['results'][number];
+    const derivedResults = $derived<SpaceResult[]>(spaceContents?.results ?? []);
+    const fileCount = $derived<number>(derivedResults.length);
+    const totalBytes = $derived<number>(
+        derivedResults.reduce(
+            (acc: number, file: SpaceResult) => acc + (file?.blob?.size ?? 0),
+            0
+        )
     );
     // Controlled dialog state for external navigation
     let confirmOpen = $state(false);
@@ -95,9 +97,8 @@
     }
 
     async function refreshContents() {
-        await listContents().then((contents: any) => {
-            spaceContents = contents as SpaceContents;
-        });
+        const contents = await listContents();
+        spaceContents = contents as SpaceContents;
     }
 
     function onBrowseClick() {
@@ -347,13 +348,13 @@
                     <span class="ml-2">Share space</span>
                 </Button>
                 <Dialog.Root bind:open={uploadOpen}>
-                    <Dialog.Trigger asChild>
+                    <Dialog.Trigger>
                         <Button class="rounded-full px-4 text-sm font-semibold shadow-md">
                             <Icon icon="mdi:upload" width="16" height="16" />
                             <span class="ml-2">{uploading ? 'Uploading…' : 'Upload file'}</span>
                         </Button>
                     </Dialog.Trigger>
-                    <Dialog.Content class="sm:max-w-xl rounded-[1.5rem] border border-black/10 bg-white/95 p-0 shadow-2xl dark:border-white/15 dark:bg-neutral-950">
+                    <Dialog.Content class="sm:max-w-xl rounded-[1.5rem] border border-black/10 bg-white/95 p-0 shadow-2xl dark:border-white/15 dark:bg-neutral-950 overflow-y-scroll h-full">
                         <Dialog.Header class="border-b border-black/5 px-6 py-5 dark:border-white/10">
                             <Dialog.Title>Upload a new file</Dialog.Title>
                             <Dialog.Description>
@@ -407,9 +408,10 @@
                                             ></textarea>
                                         </div>
                                         <div class="space-y-2">
-                                            <label class="text-xs font-semibold uppercase tracking-[0.2em] text-black/45 dark:text-white/45">Tags</label>
+                                            <label for="tags-input" class="text-xs font-semibold uppercase tracking-[0.2em] text-black/45 dark:text-white/45">Tags</label>
                                             <div class="flex flex-wrap items-center gap-2">
                                                 <input
+                                                    id="tags-input"
                                                     bind:value={newTag}
                                                     onkeypress={handleKeyPress}
                                                     placeholder="Add a tag"
@@ -471,7 +473,7 @@
                 <ul class="divide-y divide-black/5 dark:divide-white/10">
                     {#each spaceContents.results as file (file.cause)}
                         <ContextMenu.Root>
-                            <ContextMenu.Trigger asChild>
+                            <ContextMenu.Trigger>
                                 <button
                                     type="button"
                                     class="group grid w-full grid-cols-[minmax(0,2.2fr)_minmax(0,1.3fr)_auto] items-center gap-4 px-6 py-4 text-left transition hover:bg-white hover:shadow-sm focus-visible:bg-white/90 dark:hover:bg-white/15"

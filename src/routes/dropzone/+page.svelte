@@ -107,8 +107,9 @@
           const file = await pathToFile(path);
           addLog(`⏫ Uploading: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`);
           
-          const cid = await uploadFile(file);
-          
+          const indexed = await uploadFile(file);
+          const cid = indexed.cid;
+
           addLog(`✅ ${file.name} → ${cid.slice(0, 12)}...`);
           toast.success(`Uploaded ${file.name}`);
           successCount++;

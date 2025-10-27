@@ -9,6 +9,7 @@
     import SearchDialog from "./SearchDialog.svelte";
     import { searchOpen } from "$lib/ui-store";
     import NativeSurface from "$lib/components/native-surface.svelte";
+    import { onMount } from 'svelte';
 
     let spaces: any[] = $state([]);
     let loading = $state(true);
@@ -29,7 +30,9 @@
         }
     }
 
-    $effect(loadSpaces);
+    onMount(() => {
+        void loadSpaces();
+    });
 </script>
 
 <div class="flex flex-col gap-4">
