@@ -8,6 +8,7 @@
     import { login } from "$lib/auth";
     import { authStore, type AuthState } from "$lib/auth-store";
     import Icon from "@iconify/svelte";
+    import ModeToggle from "$lib/components/mode-toggle.svelte";
 
     let email = "";
     let isLoading = false;
@@ -60,6 +61,9 @@
 </script>
 
 <div class="relative flex min-h-[calc(100vh-8rem)] w-full items-center justify-center px-4 py-10">
+    <div class="absolute top-4 right-4">
+        <ModeToggle />
+    </div>
     <div class="pointer-events-none absolute -top-16 right-8 h-56 w-56 rounded-full bg-[radial-gradient(circle,_rgba(185,0,0,0.25)_0%,_transparent_70%)] blur-2xl"></div>
     <div class="pointer-events-none absolute -bottom-20 left-12 h-64 w-64 rounded-full bg-[radial-gradient(circle,_rgba(255,107,107,0.28)_0%,_transparent_70%)] blur-2xl"></div>
 
@@ -78,12 +82,12 @@
             </div>
             <div class="grid gap-3 rounded-2xl border border-black/10 bg-white/90 p-5 text-sm text-black/65 shadow-inner dark:border-white/10 dark:bg-white/5 dark:text-white/60">
                 <div class="flex items-center gap-3">
-                    <Icon icon="mdi:lock-check" width="20" height="20" class="text-primary" />
-                    Passwordless email magic links keep sign-in fast and secure.
+                    <Icon icon="mdi:package-variant-closed" width="20" height="20" class="text-primary" />
+                    Built with Storacha for decentralized storage
                 </div>
                 <div class="flex items-center gap-3">
-                    <Icon icon="mdi:folder-sync" width="20" height="20" class="text-primary" />
-                    Seamless syncing across every device with native polish.
+                    <Icon icon="mdi:school" width="20" height="20" class="text-primary" />
+                    Developed during PLDG Cohort 4
                 </div>
             </div>
         </div>

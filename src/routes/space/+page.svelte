@@ -294,7 +294,7 @@
         <div class="pointer-events-none absolute -left-16 top-[-4rem] h-72 w-72 rounded-full bg-[radial-gradient(circle,_rgba(185,0,0,0.22)_0%,_transparent_70%)] blur-3xl"></div>
         <div class="pointer-events-none absolute right-[-4rem] bottom-[-5rem] h-80 w-80 rounded-full bg-[radial-gradient(circle,_rgba(255,107,107,0.28)_0%,_transparent_72%)] blur-3xl"></div>
         <div class="relative flex flex-col gap-6 px-8 py-10">
-            <div class="inline-flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-3 py-1 text-xs font-medium uppercase tracking-[0.24em] text-primary shadow-sm transition-colors dark:border-primary/40 dark:bg-white/10 dark:text-primary-foreground">
+            <div class="inline-flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-3 py-1 text-xs font-medium uppercase tracking-[0.24em] text-primary shadow-sm transition-colors dark:border-primary/40 dark:bg-primary/10 dark:text-primary">
                 <Icon icon={currentSpace?.access.type === "public" ? "fluent:globe-16-filled" : "mdi:lock-outline"} width="16" height="16" />
                 {currentSpace?.access.type === "public" ? 'Public space' : 'Private space'}
             </div>
@@ -323,7 +323,7 @@
                     </button>
                 </div>
                 {#if fileCount > 0}
-                    <span class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary transition dark:border-primary/30 dark:bg-primary/20 dark:text-primary-foreground">
+                    <span class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary transition dark:border-primary/30 dark:bg-primary/20 dark:text-primary">
                         <Icon icon="mdi:folder" width="16" height="16" />
                         {fileCount} item{fileCount === 1 ? '' : 's'}
                     </span>
@@ -339,11 +339,11 @@
                 <p class="text-sm text-black/55 dark:text-white/55">{fileCount} item{fileCount === 1 ? '' : 's'} • {formatBytes(totalBytes)}</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-                <Button variant="ghost" class="rounded-full px-3 text-sm text-primary dark:text-primary-foreground" onclick={refreshContents}>
+                <Button variant="ghost" class="rounded-full px-3 text-sm text-primary dark:text-primary" onclick={refreshContents}>
                     <Icon icon="mdi:refresh" width="16" height="16" />
                     <span class="ml-2">Refresh</span>
                 </Button>
-                <Button variant="ghost" class="rounded-full px-3 text-sm text-primary dark:text-primary-foreground" onclick={() => currentSpace && showQrDialog(currentSpace.did(), 'Share Space DID')}>
+                <Button variant="ghost" class="rounded-full px-3 text-sm text-primary dark:text-primary" onclick={() => currentSpace && showQrDialog(currentSpace.did(), 'Share Space DID')}>
                     <Icon icon="mdi:share-variant" width="16" height="16" />
                     <span class="ml-2">Share space</span>
                 </Button>
@@ -501,8 +501,8 @@
                                     <div class="hidden truncate text-sm text-black/55 lg:block dark:text-white/55">
                                         {deriveExternalUrl(file).replace(/^https?:\/\//, '')}
                                     </div>
-                                    <div class="ml-auto flex items-center gap-2 text-xs font-semibold text-primary dark:text-primary-foreground">
-                                        <span class="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 transition group-hover:border-primary/40 group-hover:bg-primary group-hover:text-primary-foreground dark:border-primary/30 dark:bg-primary/20">
+                                    <div class="ml-auto flex items-center gap-2 text-xs font-semibold text-primary dark:text-primary">
+                                        <span class="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 transition group-hover:border-primary/40 group-hover:bg-primary group-hover:text-primary-foreground dark:border-primary/30 dark:bg-primary/20 dark:text-primary dark:group-hover:text-primary-foreground">
                                             Open
                                         </span>
                                         <Icon icon="mdi:arrow-top-right" width="16" height="16" />

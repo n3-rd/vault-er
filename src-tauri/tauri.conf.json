@@ -19,8 +19,8 @@
       },
       {
         "title": "Drop Zone",
-        "width": 600,
-        "height": 480,
+        "width": 320,
+        "height": 350,
         "decorations": false,
         "transparent": true,
         "alwaysOnTop": true,
@@ -32,6 +32,7 @@
       }
     ],
     "withGlobalTauri": true,
+    "macOSPrivateApi": true,
     "security": {
       "csp": "default-src 'self' ipc: https://ipc.localhost https://*.localhost:* http://localhost:*; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' ipc: https: http: ws: wss:; object-src 'none'; base-uri 'self'; form-action 'self';"
     }
