@@ -10,6 +10,7 @@
   import '../../app.css';
   import Shape1 from '$lib/components/shapes/shape1.svelte';
   import { LogOut, Upload, FolderOpen, X, Check } from 'lucide-svelte';
+  import ModeToggle from "$lib/components/mode-toggle.svelte";
 
   let isDragging = $state(false);
   let picking = $state(false);
@@ -91,6 +92,7 @@
         try {
           const file = await pathToFile(path);
           const indexed = await uploadFile(file);
+          toast.success(`Uploaded ${file.name}`);
           successCount++;
         } catch (e: any) {
           const errorMsg = e?.message ?? String(e);
@@ -199,9 +201,12 @@
       <div class="w-2 h-2 rounded-full {isAuthenticated ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' : 'bg-red-500'}"></div>
       <span class="font-medium text-sm tracking-tight">Vault-er</span>
     </div>
-    <Button variant="ghost" size="icon" class="h-6 w-6 hover:bg-destructive/10 hover:text-destructive transition-colors" onclick={quitApp} title="Quit">
-      <X class="w-3.5 h-3.5" />
-    </Button>
+    <div class="flex items-center gap-1">
+      <ModeToggle />
+      <Button variant="ghost" size="icon" class="h-6 w-6 hover:bg-destructive/10 hover:text-destructive transition-colors" onclick={quitApp} title="Quit">
+        <X class="w-3.5 h-3.5" />
+      </Button>
+    </div>
   </div>
 
   <!-- Main Content -->
