@@ -4,6 +4,7 @@
     import Icon from "@iconify/svelte";
     import { copyToClipboard } from "$lib/utils";
     import { toast } from 'svelte-sonner';
+    import { mode } from "mode-watcher";
     // @ts-ignore - svelte-qrcode types not available
     import QrCode from "svelte-qrcode";
 
@@ -31,9 +32,16 @@
         </Dialog.Header>
         <div class="flex flex-col items-center gap-4 p-4">
             {#if value}
-                <QrCode {value} size={200} background="#fff6f8" color="#b90000" />
+                <div class="overflow-hidden rounded-xl bg-white dark:bg-black p-2">
+                    <QrCode 
+                        {value} 
+                        size={200} 
+                        background={mode.current === 'dark' ? '#000' : '#fff6f8'} 
+                        color={mode.current === 'dark' ? '#FC5259' : '#b90000'} 
+                    />
+                </div>
                 <div class="text-center">
-                    <p class="text-sm text-muted-foreground break-all max-w-[300px]">
+                    <p class="max-w-[300px] break-all text-sm text-black/80 dark:text-white/90">
                         {value}
                     </p>
                     <Button
